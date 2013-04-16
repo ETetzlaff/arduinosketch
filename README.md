@@ -1,4 +1,11 @@
 /*
+Project: Evan Tetzlaff
+Sources: Twitter API listed on arduino.cc written by Tom Igoe (see below)
+         arduino.cc for basic motor operations
+Purpose: Provide a tool to tweet and execute motor, rigged to open a latch to feed the cat.
+*/
+
+/*
   Twitter Client with Strings
  
  This sketch connects to Twitter using an Ethernet shield. It parses the XML
@@ -37,8 +44,8 @@ EthernetClient client;
 
 const unsigned long requestInterval = 60000;  // delay between requests
 
-//char serverName[] = "api.twitter.com";  // twitter URL
-char serverName[] = "https://twitter.com/itachireuhssure";
+char serverName[] = "api.twitter.com";  // twitter URL
+//char serverName[] = "https://twitter.com/itachireuhssure";
 
 boolean requested;                   // whether you've made a request since connecting
 unsigned long lastAttemptTime = 0;            // last time you connected to the server, in milliseconds
@@ -50,6 +57,8 @@ boolean readingTweet = false;       // if you're currently reading the tweet
 int motorPin = 9; //pin the motor is connected to
 
 void setup() {
+  pinMode(motorPin, OUTPUT); 
+  
   // reserve space for the strings:
   currentLine.reserve(256);
   tweet.reserve(150);
@@ -112,8 +121,12 @@ void loop()
           client.stop(); 
           
           //I think this is where the motor stop/start will go.
-          motorOnThenOff();
-          
+          if(tweet == "feed cat"){
+            motorOnThenOff();
+            //Set tweet to not "feed cat" so it does not continue activating motor.
+            tweet = "reset";
+          }  
+          Serial.println("Worked!");
         }
       }
     }   
@@ -131,7 +144,7 @@ void connectToServer() {
   if (client.connect(serverName, 80)) {
     Serial.println("making HTTP request...");
     // make HTTP GET request to twitter:
-    client.println("GET /1/statuses/user_timeline.xml?screen_name=arduino&count=1 HTTP/1.1");
+    client.println("GET /1/statuses/user_timeline.xml?screen_name=itachireuhssure HTTP/1.1");
     client.println("HOST: api.twitter.com");
     client.println();
   }
@@ -140,14 +153,13 @@ void connectToServer() {
 }
 
 void motorOnThenOff(){
-  int onTime = 2500; //on time
-  int offTime = 1000; //off time
-  digitalWrite(motorPin, HIGH); //turn the motor on
+  int onTime = 2500;  //the number of milliseconds for the motor to turn on for
+  int offTime = 1000; //the number of milliseconds for the motor to turn off for
   
-  delay(onTime); //waits for onTime milliseconds
-  digitalWrite(motorPin, LOW); //turns the motor off
-  
-  delay(offTime); //waits for offTime milliseconds
+  digitalWrite(motorPin, HIGH); // turns the motor On
+  delay(onTime);                // waits for onTime milliseconds
+  digitalWrite(motorPin, LOW);  // turns the motor Off
+  delay(offTime);               // waits for offTime milliseconds
 }
 
 void motorOnThenOffwithSpeed(){
